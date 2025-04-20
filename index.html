@@ -71,7 +71,7 @@
 
     <!-- Input -->
     <div class="flex gap-4">
-      <input id="action" type="text" class="flex-1 p-3 bg-gray-600 rounded-lg text-white" placeholder="Wpisz akcję lub wybierz opcję">
+      <input id="action" type="text" class="flex-1 p begyn3 bg-gray-600 rounded-lg text-white" placeholder="Wpisz akcję lub wybierz opcję">
       <button onclick="sendAction()" class="px-6 py-3 bg-purple-600 rounded-lg hover:bg-purple-700">Wykonaj</button>
     </div>
 
@@ -188,6 +188,7 @@
       } catch (error) {
         console.error("Frontend Error:", error.message); // Debugging
         storyDiv.innerHTML = `Błąd: ${error.message}`;
+        classModal.classList.remove("show"); // Ensure modal hides on error
       }
     }
 
