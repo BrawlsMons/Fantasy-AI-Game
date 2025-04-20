@@ -109,22 +109,23 @@
 
     function updateStats(state) {
       document.getElementById("player-class").textContent = state.class || "Nie wybrano";
-      document.getElementById("player-level").textContent = state.level;
-      document.getElementById("player-hp").textContent = `${state.health}/100`;
-      document.getElementById("player-mana").textContent = `${state.mana}/50`;
-      document.getElementById("player-xp").textContent = `${state.xp}/100`;
-      document.getElementById("hp-bar").style.width = `${state.health}%`;
-      document.getElementById("mana-bar").style.width = `${(state.mana / 50) * 100}%`;
-      document.getElementById("xp-bar").style.width = `${state.xp}%`;
+      document.getElementById("player-level").textContent = state.level || 1;
+      document.getElementById("player-hp").textContent = `${state.health || 100}/100`;
+      document.getElementById("player-mana").textContent = `${state.mana || 50}/50`;
+      document.getElementById("player-xp").textContent = `${state.xp || 0}/100`;
+      document.getElementById("hp-bar").style.width = `${state.health || 100}%`;
+      document.getElementById("mana-bar").style.width = `${((state.mana || 50) / 50) * 100}%`;
+      document.getElementById("xp-bar").style.width = `${state.xp || 0}%`;
     }
 
     function showOptions(options) {
       optionsDiv.innerHTML = "";
-      options.forEach((option) => {
+      (options || []).forEach((option) => {
         const button = document.createElement("button");
         button.textContent = option;
         button.className = "p-3 bg-gray-600 rounded-lg hover:bg-purple-600";
         button.onclick = () => {
+          console.log("Option selected:", option); // Debugging
           actionInput.value = option;
           sendAction();
         };
@@ -133,13 +134,15 @@
     }
 
     function selectClass(className) {
+      console.log("Class selected:", className); // Debugging
       actionInput.value = className;
-      sendAction();
       classModal.classList.remove("show");
+      sendAction();
     }
 
     async function sendAction() {
       const action = actionInput.value.trim() || "rozpoczęcie gry";
+      console.log("Sending action:", action, "Current player state:", playerState); // Debugging
       storyDiv.innerHTML = "Ładowanie...";
       optionsDiv.innerHTML = "";
 
@@ -155,10 +158,11 @@
         }
 
         const data = await response.json();
+        console.log("Backend response:", data); // Debugging
         storyDiv.innerHTML = data.story || "Brak odpowiedzi od AI.";
         playerState = data.playerState || {};
         updateStats(playerState);
-        showOptions(data.options || []);
+        showOptions(data.options);
 
         // Load images with error handling
         backgroundImage.src = data.backgroundImage || "https://placehold.co/600x400/png?text=Background";
@@ -166,8 +170,14 @@
 
         backgroundImage.onload = () => backgroundImage.classList.add("loaded");
         enemyImage.onload = () => enemyImage.classList.add("loaded");
-        backgroundImage.onerror = () => backgroundImage.src = "https://placehold.co/600x400/png?text=Background";
-        enemyImage.onerror = () => enemyImage.src = "https://placehold.co/150x150/png?text=Enemy";
+        backgroundImage.onerror = () => {
+          console.error("Background image failed to load:", backgroundImage.src);
+          backgroundImage.src = "https://placehold.co/600x400/png?text=Background";
+        };
+        enemyImage.onerror = () => {
+          console.error("Enemy image failed to load:", enemyImage.src);
+          enemyImage.src = "https://placehold.co/150x150/png?text=Enemy";
+        };
 
         actionInput.value = "";
         updateCanvas();
@@ -176,16 +186,22 @@
           classModal.classList.add("show");
         }
       } catch (error) {
+        console.error("Frontend Error:", error.message); // Debugging
         storyDiv.innerHTML = `Błąd: ${error.message}`;
-        console.error("Frontend Error:", error.message);
       }
     }
 
     actionInput.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") sendAction();
+      if (e.key === "Enter") {
+        console.log("Enter key pressed, triggering sendAction"); // Debugging
+        sendAction();
+      }
     });
 
-    window.onload = sendAction;
+    window.onload = () => {
+      console.log("Page loaded, triggering initial sendAction"); // Debugging
+      sendAction();
+    };
   </script>
 </body>
 </html>
