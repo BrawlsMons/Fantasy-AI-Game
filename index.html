@@ -54,9 +54,8 @@
       </div>
     </div>
 
-    <!-- Game Canvas -->
+    <!-- Game Area -->
     <div class="relative mb-6">
-      <canvas id="game-canvas" class="w-full h-96 rounded-lg"></canvas>
       <img id="background-image" class="absolute inset-0 w-full h-full object-cover rounded-lg opacity-50" src="https://placehold.co/600x400/png?text=Background" alt="Background">
       <img id="enemy-image" class="absolute bottom-10 right-10 w-32 h-32 pulse" src="https://placehold.co/150x150/png?text=Enemy" alt="Enemy">
     </div>
@@ -71,7 +70,7 @@
 
     <!-- Input -->
     <div class="flex gap-4">
-      <input id="action" type="text" class="flex-1 p begyn3 bg-gray-600 rounded-lg text-white" placeholder="Wpisz akcję lub wybierz opcję">
+      <input id="action" type="text" class="flex-1 p-3 bg-gray-600 rounded-lg text-white" placeholder="Wpisz akcję lub wybierz opcję">
       <button onclick="sendAction()" class="px-6 py-3 bg-purple-600 rounded-lg hover:bg-purple-700">Wykonaj</button>
     </div>
 
@@ -94,18 +93,10 @@
     const actionInput = document.getElementById("action");
     const optionsDiv = document.getElementById("options");
     const classModal = document.getElementById("class-modal");
-    const canvas = document.getElementById("game-canvas");
-    const ctx = canvas.getContext("2d");
     const backgroundImage = document.getElementById("background-image");
     const enemyImage = document.getElementById("enemy-image");
 
     let playerState = {};
-
-    function updateCanvas() {
-      canvas.width = canvas.offsetWidth;
-      canvas.height = canvas.offsetHeight;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
 
     function updateStats(state) {
       document.getElementById("player-class").textContent = state.class || "Nie wybrano";
@@ -125,7 +116,7 @@
         button.textContent = option;
         button.className = "p-3 bg-gray-600 rounded-lg hover:bg-purple-600";
         button.onclick = () => {
-          console.log("Option selected:", option); // Debugging
+          console.log("Option selected:", option);
           actionInput.value = option;
           sendAction();
         };
@@ -134,7 +125,7 @@
     }
 
     function selectClass(className) {
-      console.log("Class selected:", className); // Debugging
+      console.log("Class selected:", className);
       actionInput.value = className;
       classModal.classList.remove("show");
       sendAction();
@@ -142,7 +133,7 @@
 
     async function sendAction() {
       const action = actionInput.value.trim() || "rozpoczęcie gry";
-      console.log("Sending action:", action, "Current player state:", playerState); // Debugging
+      console.log("Sending action:", action, "Current player state:", JSON.stringify(playerState, null, 2));
       storyDiv.innerHTML = "Ładowanie...";
       optionsDiv.innerHTML = "";
 
@@ -158,7 +149,7 @@
         }
 
         const data = await response.json();
-        console.log("Backend response:", data); // Debugging
+        console.log("Backend response:", JSON.stringify(data, null, 2));
         storyDiv.innerHTML = data.story || "Brak odpowiedzi od AI.";
         playerState = data.playerState || {};
         updateStats(playerState);
@@ -168,39 +159,51 @@
         backgroundImage.src = data.backgroundImage || "https://placehold.co/600x400/png?text=Background";
         enemyImage.src = data.enemyImage || "https://placehold.co/150x150/png?text=Enemy";
 
-        backgroundImage.onload = () => backgroundImage.classList.add("loaded");
-        enemyImage.onload = () => enemyImage.classList.add("loaded");
+        backgroundImage.onload = () => {
+          backgroundImage.classList.add("loaded");
+          backgroundImage.style.display = "block";
+        };
+        enemyImage.onload = () => {
+          enemyImage.classList.add("loaded");
+          enemyImage.style.display = "block";
+        };
         backgroundImage.onerror = () => {
           console.error("Background image failed to load:", backgroundImage.src);
           backgroundImage.src = "https://placehold.co/600x400/png?text=Background";
+          backgroundImage.classList.add("loaded");
+          backgroundImage.style.display = "block";
         };
         enemyImage.onerror = () => {
           console.error("Enemy image failed to load:", enemyImage.src);
           enemyImage.src = "https://placehold.co/150x150/png?text=Enemy";
+          enemyImage.classList.add("loaded");
+          enemyImage.style.display = "block";
         };
 
         actionInput.value = "";
-        updateCanvas();
 
+        // Zarządzaj widocznością modala
         if (!playerState.class) {
           classModal.classList.add("show");
+        } else {
+          classModal.classList.remove("show");
         }
       } catch (error) {
-        console.error("Frontend Error:", error.message); // Debugging
+        console.error("Frontend Error:", error.message);
         storyDiv.innerHTML = `Błąd: ${error.message}`;
-        classModal.classList.remove("show"); // Ensure modal hides on error
+        classModal.classList.remove("show");
       }
     }
 
     actionInput.addEventListener("keypress", (e) => {
       if (e.key === "Enter") {
-        console.log("Enter key pressed, triggering sendAction"); // Debugging
+        console.log("Enter key pressed, triggering sendAction");
         sendAction();
       }
     });
 
     window.onload = () => {
-      console.log("Page loaded, triggering initial sendAction"); // Debugging
+      console.log("Page loaded, triggering initial sendAction");
       sendAction();
     };
   </script>
