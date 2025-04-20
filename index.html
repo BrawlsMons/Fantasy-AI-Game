@@ -86,6 +86,7 @@
     const classModal = document.getElementById("class-modal");
 
     let playerState = {};
+    let hasSelectedClass = false; // Track if class has been selected
 
     function updateStats(state) {
       document.getElementById("player-class").textContent = state.class || "Not selected";
@@ -116,6 +117,7 @@
     function selectClass(className) {
       console.log("Class selected:", className);
       actionInput.value = className;
+      hasSelectedClass = true; // Mark class as selected
       classModal.classList.remove("show");
       sendAction();
     }
@@ -147,8 +149,8 @@
 
         actionInput.value = "";
 
-        // Show modal only at the start if no class is selected
-        if (!playerState.class && action === "start adventure") {
+        // Show modal only at the start and if no class has been selected
+        if (!hasSelectedClass && !playerState.class && action === "start adventure") {
           classModal.classList.add("show");
         } else {
           classModal.classList.remove("show");
