@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gra RPG: Przygoda w Świecie Fantasy</title>
+  <title>RPG Game: Adventure in a Fantasy World</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     @keyframes pulse {
@@ -20,26 +20,23 @@
     .modal.show {
       display: flex;
     }
-    img {
-      display: none;
-    }
-    img.loaded {
-      display: block;
+    .text-red-500 {
+      color: #ef4444;
     }
   </style>
 </head>
 <body class="bg-gray-900 text-white flex items-center justify-center min-h-screen">
   <div class="container max-w-4xl w-full bg-gray-800 p-6 rounded-lg shadow-lg">
-    <h1 class="text-3xl font-bold text-purple-400 text-center mb-4">Przygoda w Świecie Fantasy</h1>
+    <h1 class="text-3xl font-bold text-purple-400 text-center mb-4">Adventure in a Fantasy World</h1>
 
     <!-- Player Stats -->
     <div class="grid grid-cols-2 gap-4 mb-6">
       <div>
-        <p class="text-lg">Klasa: <span id="player-class">Nie wybrano</span></p>
-        <p class="text-lg">Poziom: <span id="player-level">1</span></p>
+        <p class="text-lg">Class: <span id="player-class">Not selected</span></p>
+        <p class="text-lg">Level: <span id="player-level">1</span></p>
       </div>
       <div>
-        <p>Zdrowie: <span id="player-hp">100/100</span></p>
+        <p>Health: <span id="player-hp">100/100</span></p>
         <div class="w-full bg-gray-700 rounded-full h-4">
           <div id="hp-bar" class="bg-red-500 h-4 rounded-full" style="width: 100%"></div>
         </div>
@@ -54,15 +51,9 @@
       </div>
     </div>
 
-    <!-- Game Area -->
-    <div class="relative mb-6">
-      <img id="background-image" class="absolute inset-0 w-full h-full object-cover rounded-lg opacity-50" src="https://placehold.co/600x400/png?text=Background" alt="Background">
-      <img id="enemy-image" class="absolute bottom-10 right-10 w-32 h-32 pulse" src="https://placehold.co/150x150/png?text=Enemy" alt="Enemy">
-    </div>
-
     <!-- Story -->
     <div id="story" class="bg-gray-700 p-4 rounded-lg mb-6 text-lg leading-relaxed">
-      Witaj, wojowniku! Wybierz klasę, aby rozpocząć przygodę...
+      Welcome, warrior! Choose a class to begin your adventure...
     </div>
 
     <!-- Options -->
@@ -70,19 +61,19 @@
 
     <!-- Input -->
     <div class="flex gap-4">
-      <input id="action" type="text" class="flex-1 p-3 bg-gray-600 rounded-lg text-white" placeholder="Wpisz akcję lub wybierz opcję">
-      <button onclick="sendAction()" class="px-6 py-3 bg-purple-600 rounded-lg hover:bg-purple-700">Wykonaj</button>
+      <input id="action" type="text" class="flex-1 p-3 bg-gray-600 rounded-lg text-white" placeholder="Enter an action or choose an option">
+      <button onclick="sendAction()" class="px-6 py-3 bg-purple-600 rounded-lg hover:bg-purple-700">Execute</button>
     </div>
 
     <!-- Class Selection Modal -->
     <div id="class-modal" class="modal fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center">
       <div class="bg-gray-800 p-6 rounded-lg max-w-md w-full">
-        <h2 class="text-2xl font-bold text-purple-400 mb-4">Wybierz klasę</h2>
+        <h2 class="text-2xl font-bold text-purple-400 mb-4">Choose Your Class</h2>
         <div class="grid grid-cols-2 gap-4">
           <button onclick="selectClass('Berserker')" class="p-4 bg-gray-700 rounded-lg hover:bg-purple-600">Berserker</button>
-          <button onclick="selectClass('Mage')" class="p-4 bg-gray-700 rounded-lg hover:bg-purple-600">Mag</button>
-          <button onclick="selectClass('Archer')" class="p-4 bg-gray-700 rounded-lg hover:bg-purple-600">Łucznik</button>
-          <button onclick="selectClass('Assassin')" class="p-4 bg-gray-700 rounded-lg hover:bg-purple-600">Asasyn</button>
+          <button onclick="selectClass('Mage')" class="p-4 bg-gray-700 rounded-lg hover:bg-purple-600">Mage</button>
+          <button onclick="selectClass('Archer')" class="p-4 bg-gray-700 rounded-lg hover:bg-purple-600">Archer</button>
+          <button onclick="selectClass('Assassin')" class="p-4 bg-gray-700 rounded-lg hover:bg-purple-600">Assassin</button>
         </div>
       </div>
     </div>
@@ -93,13 +84,11 @@
     const actionInput = document.getElementById("action");
     const optionsDiv = document.getElementById("options");
     const classModal = document.getElementById("class-modal");
-    const backgroundImage = document.getElementById("background-image");
-    const enemyImage = document.getElementById("enemy-image");
 
     let playerState = {};
 
     function updateStats(state) {
-      document.getElementById("player-class").textContent = state.class || "Nie wybrano";
+      document.getElementById("player-class").textContent = state.class || "Not selected";
       document.getElementById("player-level").textContent = state.level || 1;
       document.getElementById("player-hp").textContent = `${state.health || 100}/100`;
       document.getElementById("player-mana").textContent = `${state.mana || 50}/50`;
@@ -132,9 +121,9 @@
     }
 
     async function sendAction() {
-      const action = actionInput.value.trim() || "rozpoczęcie gry";
+      const action = actionInput.value.trim() || "start adventure";
       console.log("Sending action:", action, "Current player state:", JSON.stringify(playerState, null, 2));
-      storyDiv.innerHTML = "Ładowanie...";
+      storyDiv.innerHTML = "Loading...";
       optionsDiv.innerHTML = "";
 
       try {
@@ -145,52 +134,28 @@
         });
 
         if (!response.ok) {
-          throw new Error(`Błąd HTTP: ${response.status}`);
+          const errorData = await response.json();
+          throw new Error(errorData.error || `HTTP Error: ${response.status}`);
         }
 
         const data = await response.json();
         console.log("Backend response:", JSON.stringify(data, null, 2));
-        storyDiv.innerHTML = data.story || "Brak odpowiedzi od AI.";
+        storyDiv.innerHTML = data.story || "No response from AI.";
         playerState = data.playerState || {};
         updateStats(playerState);
         showOptions(data.options);
 
-        // Load images with error handling
-        backgroundImage.src = data.backgroundImage || "https://placehold.co/600x400/png?text=Background";
-        enemyImage.src = data.enemyImage || "https://placehold.co/150x150/png?text=Enemy";
-
-        backgroundImage.onload = () => {
-          backgroundImage.classList.add("loaded");
-          backgroundImage.style.display = "block";
-        };
-        enemyImage.onload = () => {
-          enemyImage.classList.add("loaded");
-          enemyImage.style.display = "block";
-        };
-        backgroundImage.onerror = () => {
-          console.error("Background image failed to load:", backgroundImage.src);
-          backgroundImage.src = "https://placehold.co/600x400/png?text=Background";
-          backgroundImage.classList.add("loaded");
-          backgroundImage.style.display = "block";
-        };
-        enemyImage.onerror = () => {
-          console.error("Enemy image failed to load:", enemyImage.src);
-          enemyImage.src = "https://placehold.co/150x150/png?text=Enemy";
-          enemyImage.classList.add("loaded");
-          enemyImage.style.display = "block";
-        };
-
         actionInput.value = "";
 
-        // Zarządzaj widocznością modala
-        if (!playerState.class) {
+        // Show modal only at the start if no class is selected
+        if (!playerState.class && action === "start adventure") {
           classModal.classList.add("show");
         } else {
           classModal.classList.remove("show");
         }
       } catch (error) {
         console.error("Frontend Error:", error.message);
-        storyDiv.innerHTML = `Błąd: ${error.message}`;
+        storyDiv.innerHTML = `<span class="text-red-500">Error: ${error.message}. Try again or contact support.</span>`;
         classModal.classList.remove("show");
       }
     }
