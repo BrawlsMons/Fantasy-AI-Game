@@ -118,7 +118,7 @@
       console.log("Class selected:", className);
       actionInput.value = className;
       hasSelectedClass = true; // Mark class as selected
-      classModal.classList.remove("show");
+      classModal.classList.remove("show"); // Hide modal immediately
       sendAction();
     }
 
@@ -149,8 +149,9 @@
 
         actionInput.value = "";
 
-        // Show modal only at the start and if no class has been selected
-        if (!hasSelectedClass && !playerState.class && action === "start adventure") {
+        // Show modal only if no class is selected and class hasn't been chosen before
+        console.log("Modal check:", { hasSelectedClass, class: playerState.class });
+        if (!hasSelectedClass && !playerState.class) {
           classModal.classList.add("show");
         } else {
           classModal.classList.remove("show");
