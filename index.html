@@ -23,9 +23,6 @@
     .text-red-500 {
       color: #ef4444;
     }
-    #continue-button {
-      display: none;
-    }
   </style>
 </head>
 <body class="bg-gray-900 text-white flex items-center justify-center min-h-screen">
@@ -78,7 +75,7 @@
           <button onclick="selectClass('Archer')" class="p-4 bg-gray-700 rounded-lg hover:bg-purple-600">Archer</button>
           <button onclick="selectClass('Assassin')" class="p-4 bg-gray-700 rounded-lg hover:bg-purple-600">Assassin</button>
         </div>
-        <button id="continue-button" onclick="sendAction()" class="w-full p-3 bg-purple-600 rounded-lg hover:bg-purple-700">Continue</button>
+        <button id="continue-button" onclick="continueAction()" class="w-full p-3 bg-purple-600 rounded-lg hover:bg-purple-700">Continue</button>
       </div>
     </div>
   </div>
@@ -91,7 +88,7 @@
     const continueButton = document.getElementById("continue-button");
 
     let playerState = {};
-    let hasSelectedClass = false; // Track if class has been selected
+    let hasSelectedClass = false;
 
     function updateStats(state) {
       document.getElementById("player-class").textContent = state.class || "Not selected";
@@ -106,6 +103,7 @@
 
     function showOptions(options) {
       optionsDiv.innerHTML = "";
+      console.log("Displaying options:", options);
       (options || []).forEach((option) => {
         const button = document.createElement("button");
         button.textContent = option;
@@ -122,14 +120,26 @@
     function selectClass(className) {
       console.log("Class selected:", className);
       actionInput.value = className;
-      hasSelectedClass = true; // Mark class as selected
-      continueButton.style.display = "block"; // Show Continue button
-      console.log("Continue button shown, waiting for user action");
+      hasSelectedClass = true;
+      console.log("Class set, ready to continue with action:", actionInput.value);
+    }
+
+    function continueAction() {
+      console.log("Continue button clicked, hiding modal");
+      classModal.classList.remove("show");
+      classModal.style.display = "none";
+      console.log("Modal display style:", classModal.style.display);
+      sendAction();
     }
 
     async function sendAction() {
-      const action = actionInput.value.trim() || "start adventure";
-      console.log("Sending action:", action, "Current player state:", JSON.stringify(playerState, null, 2));
+      const action = actionInput.value.trim();
+      if (!action) {
+        console.log("No action provided, showing error message");
+        storyDiv.innerHTML = '<span class="text-red-500">Please select a class before continuing.</span>';
+        return;
+      }
+      console.log("Sending action:", action, "Player state:", JSON.stringify(playerState, null, 2));
       storyDiv.innerHTML = "Loading...";
       optionsDiv.innerHTML = "";
 
@@ -153,16 +163,17 @@
         showOptions(data.options);
 
         actionInput.value = "";
-
-        // Hide modal and Continue button after sending action
-        console.log("Modal check:", { hasSelectedClass, class: playerState.class });
+        console.log("Action processed, ensuring modal is hidden");
         classModal.classList.remove("show");
-        continueButton.style.display = "none";
+        classModal.style.display = "none";
+        console.log("Modal display style after action:", classModal.style.display);
       } catch (error) {
         console.error("Frontend Error:", error.message);
         storyDiv.innerHTML = `<span class="text-red-500">Error: ${error.message}. Try again or contact support.</span>`;
+        console.log("Error occurred, ensuring modal is hidden");
         classModal.classList.remove("show");
-        continueButton.style.display = "none";
+        classModal.style.display = "none";
+        console.log("Modal display style after error:", classModal.style.display);
       }
     }
 
@@ -174,8 +185,8 @@
     });
 
     window.onload = () => {
-      console.log("Page loaded, triggering initial sendAction");
-      classModal.classList.add("show"); // Show modal on page load
+      console.log("Page loaded, showing class selection modal");
+      classModal.classList.add("show");
     };
   </script>
 </body>
