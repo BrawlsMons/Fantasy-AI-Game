@@ -3,16 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Brawl's Fantasy RPG</title>
+  <title>Gra RPG: Przygoda w Świecie Fantasy</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: 'Roboto', sans-serif;
-    }
-    h1, h2 {
-      font-family: 'Cinzel', serif;
-    }
     @keyframes pulse {
       0% { transform: scale(1); }
       50% { transform: scale(1.05); }
@@ -20,6 +13,12 @@
     }
     .pulse {
       animation: pulse 2s infinite;
+    }
+    .modal {
+      display: none;
+    }
+    .modal.show {
+      display: flex;
     }
     img {
       display: none;
@@ -31,7 +30,7 @@
 </head>
 <body class="bg-gray-900 text-white flex items-center justify-center min-h-screen">
   <div class="container max-w-4xl w-full bg-gray-800 p-6 rounded-lg shadow-lg">
-    <h1 class="text-4xl font-bold text-purple-400 text-center mb-6">Brawl's Fantasy RPG</h1>
+    <h1 class="text-3xl font-bold text-purple-400 text-center mb-4">Przygoda w Świecie Fantasy</h1>
 
     <!-- Player Stats -->
     <div class="grid grid-cols-2 gap-4 mb-6">
@@ -70,14 +69,23 @@
     <!-- Options -->
     <div id="options" class="grid grid-cols-2 gap-4 mb-6"></div>
 
-    <!-- Input and Session Controls -->
-    <div class="flex gap-4 mb-4">
-      <input id="action" type="text" class="flex-1 p-3 bg-gray-600 rounded-lg text-white" placeholder="Wpisz akcję lub wybierz opcję">
+    <!-- Input -->
+    <div class="flex gap-4">
+      <input id="action" type="text" class="flex-1 p begyn3 bg-gray-600 rounded-lg text-white" placeholder="Wpisz akcję lub wybierz opcję">
       <button onclick="sendAction()" class="px-6 py-3 bg-purple-600 rounded-lg hover:bg-purple-700">Wykonaj</button>
     </div>
-    <div class="flex gap-4">
-      <button onclick="saveGame()" class="px-6 py-3 bg-green-600 rounded-lg hover:bg-green-700">Zapisz Grę</button>
-      <button onclick="loadGame()" class="px-6 py-3 bg-blue-600 rounded-lg hover:bg-blue-700">Wczytaj Grę</button>
+
+    <!-- Class Selection Modal -->
+    <div id="class-modal" class="modal fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center">
+      <div class="bg-gray-800 p-6 rounded-lg max-w-md w-full">
+        <h2 class="text-2xl font-bold text-purple-400 mb-4">Wybierz klasę</h2>
+        <div class="grid grid-cols-2 gap-4">
+          <button onclick="selectClass('Berserker')" class="p-4 bg-gray-700 rounded-lg hover:bg-purple-600">Berserker</button>
+          <button onclick="selectClass('Mage')" class="p-4 bg-gray-700 rounded-lg hover:bg-purple-600">Mag</button>
+          <button onclick="selectClass('Archer')" class="p-4 bg-gray-700 rounded-lg hover:bg-purple-600">Łucznik</button>
+          <button onclick="selectClass('Assassin')" class="p-4 bg-gray-700 rounded-lg hover:bg-purple-600">Asasyn</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -85,33 +93,13 @@
     const storyDiv = document.getElementById("story");
     const actionInput = document.getElementById("action");
     const optionsDiv = document.getElementById("options");
+    const classModal = document.getElementById("class-modal");
     const canvas = document.getElementById("game-canvas");
     const ctx = canvas.getContext("2d");
     const backgroundImage = document.getElementById("background-image");
     const enemyImage = document.getElementById("enemy-image");
 
     let playerState = {};
-
-    // Load saved game on page load
-    window.onload = () => {
-      console.log("Page loaded"); // Debugging
-      const savedState = localStorage.getItem("brawlsFantasyRPG");
-      if (savedState) {
-        playerState = JSON.parse(savedState);
-        updateStats(playerState);
-        if (playerState.class) {
-          storyDiv.innerHTML = "Wczytano zapisaną grę. Wpisz akcję, aby kontynuować...";
-          sendAction(); // Fetch updated story and options
-        } else {
-          storyDiv.innerHTML = "Witaj, wojowniku! Wybierz klasę, aby rozpocząć przygodę...";
-          showClassOptions();
-        }
-      } else {
-        storyDiv.innerHTML = "Witaj, wojowniku! Wybierz klasę, aby rozpocząć przygodę...";
-        showClassOptions();
-      }
-      updateCanvas();
-    };
 
     function updateCanvas() {
       canvas.width = canvas.offsetWidth;
@@ -130,28 +118,8 @@
       document.getElementById("xp-bar").style.width = `${state.xp || 0}%`;
     }
 
-    function showClassOptions() {
-      optionsDiv.innerHTML = "";
-      const classes = ["Berserker", "Mage", "Archer", "Assassin"];
-      classes.forEach((className) => {
-        const button = document.createElement("button");
-        button.textContent = className === "Mage" ? "Mag" : className === "Archer" ? "Łucznik" : className === "Assassin" ? "Asasyn" : className;
-        button.className = "p-4 bg-gray-700 rounded-lg hover:bg-purple-600";
-        button.onclick = () => {
-          console.log("Class selected:", className); // Debugging
-          actionInput.value = className;
-          sendAction();
-        };
-        optionsDiv.appendChild(button);
-      });
-    }
-
     function showOptions(options) {
       optionsDiv.innerHTML = "";
-      if (!playerState.class) {
-        showClassOptions();
-        return;
-      }
       (options || []).forEach((option) => {
         const button = document.createElement("button");
         button.textContent = option;
@@ -165,34 +133,11 @@
       });
     }
 
-    function saveGame() {
-      console.log("Saving game:", playerState); // Debugging
-      localStorage.setItem("brawlsFantasyRPG", JSON.stringify(playerState));
-      storyDiv.innerHTML = "Gra zapisana pomyślnie!";
-      setTimeout(() => {
-        storyDiv.innerHTML = playerState.class ? "Kontynuuj przygodę..." : "Wybierz klasę, aby rozpocząć przygodę...";
-      }, 2000);
-    }
-
-    function loadGame() {
-      console.log("Loading game"); // Debugging
-      const savedState = localStorage.getItem("brawlsFantasyRPG");
-      if (savedState) {
-        playerState = JSON.parse(savedState);
-        updateStats(playerState);
-        storyDiv.innerHTML = "Gra wczytana pomyślnie! Kontynuuj przygodę...";
-        if (!playerState.class) {
-          showClassOptions();
-        } else {
-          sendAction(); // Fetch updated story and options
-        }
-      } else {
-        storyDiv.innerHTML = "Brak zapisanej gry.";
-        setTimeout(() => {
-          storyDiv.innerHTML = "Wybierz klasę, aby rozpocząć przygodę...";
-          showClassOptions();
-        }, 2000);
-      }
+    function selectClass(className) {
+      console.log("Class selected:", className); // Debugging
+      actionInput.value = className;
+      classModal.classList.remove("show");
+      sendAction();
     }
 
     async function sendAction() {
@@ -234,17 +179,16 @@
           enemyImage.src = "https://placehold.co/150x150/png?text=Enemy";
         };
 
-        // Save game state after every action
-        localStorage.setItem("brawlsFantasyRPG", JSON.stringify(playerState));
-
         actionInput.value = "";
         updateCanvas();
+
+        if (!playerState.class) {
+          classModal.classList.add("show");
+        }
       } catch (error) {
         console.error("Frontend Error:", error.message); // Debugging
         storyDiv.innerHTML = `Błąd: ${error.message}`;
-        if (!playerState.class) {
-          showClassOptions();
-        }
+        classModal.classList.remove("show"); // Ensure modal hides on error
       }
     }
 
@@ -254,6 +198,11 @@
         sendAction();
       }
     });
+
+    window.onload = () => {
+      console.log("Page loaded, triggering initial sendAction"); // Debugging
+      sendAction();
+    };
   </script>
 </body>
 </html>
