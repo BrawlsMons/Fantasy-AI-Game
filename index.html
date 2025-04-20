@@ -21,13 +21,6 @@
     .pulse {
       animation: pulse 2s infinite;
     }
-    .modal {
-      display: none;
-      z-index: 50;
-    }
-    .modal.show {
-      display: flex;
-    }
     img {
       display: none;
     }
@@ -86,26 +79,12 @@
       <button onclick="saveGame()" class="px-6 py-3 bg-green-600 rounded-lg hover:bg-green-700">Zapisz Grę</button>
       <button onclick="loadGame()" class="px-6 py-3 bg-blue-600 rounded-lg hover:bg-blue-700">Wczytaj Grę</button>
     </div>
-
-    <!-- Class Selection Modal -->
-    <div id="class-modal" class="modal fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center">
-      <div class="bg-gray-800 p-6 rounded-lg max-w-md w-full">
-        <h2 class="text-2xl font-bold text-purple-400 mb-4">Wybierz klasę</h2>
-        <div class="grid grid-cols-2 gap-4">
-          <button onclick="selectClass('Berserker')" class="p-4 bg-gray-700 rounded-lg hover:bg-purple-600">Berserker</button>
-          <button onclick="selectClass('Mage')" class="p-4 bg-gray-700 rounded-lg hover:bg-purple-600">Mag</button>
-          <button onclick="selectClass('Archer')" class="p-4 bg-gray-700 rounded-lg hover:bg-purple-600">Łucznik</button>
-          <button onclick="selectClass('Assassin')" class="p-4 bg-gray-700 rounded-lg hover:bg-purple-600">Asasyn</button>
-        </div>
-      </div>
-    </div>
   </div>
 
   <script>
     const storyDiv = document.getElementById("story");
     const actionInput = document.getElementById("action");
     const optionsDiv = document.getElementById("options");
-    const classModal = document.getElementById("class-modal");
     const canvas = document.getElementById("game-canvas");
     const ctx = canvas.getContext("2d");
     const backgroundImage = document.getElementById("background-image");
@@ -121,13 +100,15 @@
         playerState = JSON.parse(savedState);
         updateStats(playerState);
         if (playerState.class) {
-          classModal.classList.remove("show");
           storyDiv.innerHTML = "Wczytano zapisaną grę. Wpisz akcję, aby kontynuować...";
+          sendAction(); // Fetch updated story and options
         } else {
-          classModal.classList.add("show");
+          storyDiv.innerHTML = "Witaj, wojowniku! Wybierz klasę, aby rozpocząć przygodę...";
+          showClassOptions();
         }
       } else {
-        classModal.classList.add("show");
+        storyDiv.innerHTML = "Witaj, wojowniku! Wybierz klasę, aby rozpocząć przygodę...";
+        showClassOptions();
       }
       updateCanvas();
     };
@@ -149,8 +130,28 @@
       document.getElementById("xp-bar").style.width = `${state.xp || 0}%`;
     }
 
+    function showClassOptions() {
+      optionsDiv.innerHTML = "";
+      const classes = ["Berserker", "Mage", "Archer", "Assassin"];
+      classes.forEach((className) => {
+        const button = document.createElement("button");
+        button.textContent = className === "Mage" ? "Mag" : className === "Archer" ? "Łucznik" : className === "Assassin" ? "Asasyn" : className;
+        button.className = "p-4 bg-gray-700 rounded-lg hover:bg-purple-600";
+        button.onclick = () => {
+          console.log("Class selected:", className); // Debugging
+          actionInput.value = className;
+          sendAction();
+        };
+        optionsDiv.appendChild(button);
+      });
+    }
+
     function showOptions(options) {
       optionsDiv.innerHTML = "";
+      if (!playerState.class) {
+        showClassOptions();
+        return;
+      }
       (options || []).forEach((option) => {
         const button = document.createElement("button");
         button.textContent = option;
@@ -162,13 +163,6 @@
         };
         optionsDiv.appendChild(button);
       });
-    }
-
-    function selectClass(className) {
-      console.log("Class selected:", className); // Debugging
-      actionInput.value = className;
-      classModal.classList.remove("show");
-      sendAction();
     }
 
     function saveGame() {
@@ -187,15 +181,16 @@
         playerState = JSON.parse(savedState);
         updateStats(playerState);
         storyDiv.innerHTML = "Gra wczytana pomyślnie! Kontynuuj przygodę...";
-        if (playerState.class) {
-          classModal.classList.remove("show");
+        if (!playerState.class) {
+          showClassOptions();
         } else {
-          classModal.classList.add("show");
+          sendAction(); // Fetch updated story and options
         }
       } else {
         storyDiv.innerHTML = "Brak zapisanej gry.";
         setTimeout(() => {
           storyDiv.innerHTML = "Wybierz klasę, aby rozpocząć przygodę...";
+          showClassOptions();
         }, 2000);
       }
     }
@@ -244,14 +239,12 @@
 
         actionInput.value = "";
         updateCanvas();
-
-        if (!playerState.class) {
-          classModal.classList.add("show");
-        }
       } catch (error) {
         console.error("Frontend Error:", error.message); // Debugging
         storyDiv.innerHTML = `Błąd: ${error.message}`;
-        classModal.classList.remove("show");
+        if (!playerState.class) {
+          showClassOptions();
+        }
       }
     }
 
