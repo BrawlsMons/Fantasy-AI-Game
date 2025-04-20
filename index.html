@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gra RPG: Przygoda w Świecie Fantasy</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #1a1a1a;
+      color: #e0e0e0;
+      padding: 20px;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 600px;
+      width: 100%;
+      background: #2a2a2a;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    }
+    h1 {
+      text-align: center;
+      color: #bb86fc;
+    }
+    #story {
+      background: #333;
+      padding: 15px;
+      border-radius: 5px;
+      min-height: 200px;
+      margin-bottom: 20px;
+      white-space: pre-wrap;
+      font-size: 16px;
+      line-height: 1.5;
+    }
+    #input {
+      display: flex;
+      gap: 10px;
+    }
+    input {
+      flex: 1;
+      padding: 10px;
+      font-size: 16px;
+      background: #444;
+      color: #e0e0e0;
+      border: 1px solid #666;
+      border-radius: 5px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background: #6200ea;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #3700b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Gra RPG: Przygoda w Świecie Fantasy</h1>
+    <div id="story">Witaj, wojowniku! Wciśnij "Rozpocznij", aby zacząć przygodę...</div>
+    <div id="input">
+      <input type="text" id="action" placeholder="Wpisz akcję (np. idź na północ)" />
+      <button onclick="sendAction()">Wykonaj</button>
+    </div>
+  </div>
+
+  <script>
+    const storyDiv = document.getElementById("story");
+    const actionInput = document.getElementById("action");
+
+    async function sendAction() {
+      const action = actionInput.value.trim() || "rozpoczęcie gry";
+      storyDiv.innerHTML = "Ładowanie...";
+
+      try {
+        const response = await fetch("https://rpg-game-backend.brawlsmons.workers.dev", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Błąd HTTP: ${response.status}`);
+        }
+
+        const data = await response.json();
+        storyDiv.innerHTML = data.story || "Brak odpowiedzi od AI.";
+        actionInput.value = "";
+      } catch (error) {
+        storyDiv.innerHTML = `Błąd: ${error.message}`;
+      }
+    }
+
+    // Obsługa klawisza Enter
+    actionInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") sendAction();
+    });
+
+    // Rozpocznij grę automatycznie przy ładowaniu strony
+    window.onload = sendAction;
+  </script>
+</body>
+</html>
